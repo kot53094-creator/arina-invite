@@ -167,7 +167,7 @@ async function sendTelegram(text) {
   const chatId = process.env.TELEGRAM_CHAT_ID
   if (!token || !chatId) {
     console.warn('[telegram] missing env', { hasToken: !!token, hasChatId: !!chatId })
-    return false
+    return { ok: false, reason: 'missing_env' }
   }
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
@@ -177,9 +177,9 @@ async function sendTelegram(text) {
   if (!res.ok) {
     const body = await res.text().catch(() => '')
     console.error('[telegram] API error', res.status, body.slice(0, 300))
-    return false
+    return { ok: false, reason: 'telegram_error' }
   }
-  return true
+  return { ok: true }
 }
 
 const cors = {
@@ -193,13 +193,18 @@ exports.handler = async (event) => {
     return { statusCode: 204, headers: cors, body: '' }
   }
   if (event.httpMethod === 'GET') {
+    const token = process.env.TELEGRAM_BOT_TOKEN || ''
+    const chatId = process.env.TELEGRAM_CHAT_ID || ''
     return {
       statusCode: 200,
       headers: { ...cors, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ok: true,
-        hasToken: Boolean(process.env.TELEGRAM_BOT_TOKEN),
-        hasChatId: Boolean(process.env.TELEGRAM_CHAT_ID),
+        hasToken: Boolean(token),
+        hasChatId: Boolean(chatId),
+        // safe hints only — never full secrets
+        tokenLooksOk: /^\d+:[A-Za-z0-9_-]+$/.test(token),
+        chatIdLooksOk: /^-?\d+$/.test(chatId) && chatId !== '8913074913',
       }),
     }
   }
@@ -232,10 +237,10 @@ exports.handler = async (event) => {
   }
 
   const text = buildMessage(validated.data, validated.event)
-  const delivered = await sendTelegram(text)
+  const sent = await sendTelegram(text)
   return {
     statusCode: 200,
     headers: { ...cors, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ok: true, delivered }),
+    body: JSON.stringify({ ok: true, delivered: sent.ok, reason: sent.reason || null }),
   }
 }
