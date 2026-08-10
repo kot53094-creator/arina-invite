@@ -2,46 +2,54 @@
 
 Интерактивный сайт + Telegram-уведомления о каждом выборе.
 
-## Важно про GitHub
+## Ссылки
 
-**GitHub Pages не умеет хранить секреты и запускать API.**  
-Токен бота нельзя класть в фронтенд.
+- **Репозиторий:** https://github.com/kot53094-creator/arina-invite
+- **Публичный сайт (GitHub Pages):** https://kot53094-creator.github.io/arina-invite/
+- **Для рабочего бота** нужен деплой на Vercel (GitHub Pages не умеет держать секретный токен)
 
-Правильный вариант: репозиторий на GitHub → деплой на **Vercel** (бесплатно).  
-Сайт + `/api/choice` работают вместе, токен остаётся в Environment Variables.
+## Как сделать Telegram-бота рабочим (по шагам)
 
----
+### A. Создай бота
 
-## 1. Создай Telegram-бота
+1. Открой Telegram → [@BotFather](https://t.me/BotFather)
+2. Команда `/newbot`
+3. Придумай имя и username
+4. Скопируй **токен**
 
-1. Открой Telegram → найди [@BotFather](https://t.me/BotFather)
-2. Напиши `/newbot`
-3. Имя бота (например: `Arina Invite`)
-4. Username бота (например: `arina_invite_bot`)
-5. Скопируй **токен** (выглядит как `123456:ABC-DEF...`)
+### B. Узнай Chat ID
 
-### Узнай свой Chat ID
-
-1. Напиши своему новому боту любое сообщение (например `hi`)
+1. Напиши своему боту любое сообщение
 2. Открой в браузере (подставь токен):
 
 ```
 https://api.telegram.org/bot<ТОКЕН>/getUpdates
 ```
 
-3. Найди `"chat":{"id": 123456789` — это и есть `TELEGRAM_CHAT_ID`
+3. Найди `"chat":{"id": ЧИСЛО}` — это `TELEGRAM_CHAT_ID`  
+   Или напиши [@userinfobot](https://t.me/userinfobot)
 
-Или напиши [@userinfobot](https://t.me/userinfobot) — он покажет твой id.
+### C. Задеплой на Vercel (чтобы бот реально писал тебе)
 
----
+1. Открой:  
+   https://vercel.com/new/clone?repository-url=https://github.com/kot53094-creator/arina-invite&env=TELEGRAM_BOT_TOKEN,TELEGRAM_CHAT_ID
+2. Войди через GitHub
+3. Вставь:
+   - `TELEGRAM_BOT_TOKEN` = токен от BotFather
+   - `TELEGRAM_CHAT_ID` = твоё число id
+4. Нажми Deploy
+5. Открой выданную ссылку `*.vercel.app` — это основная ссылка для Арины
 
-## 2. Локальный запуск
+На Vercel каждый клик будет приходить тебе в Telegram.
 
-Создай файл `.env` (не коммить его):
+> GitHub Pages показывает сайт, но **без** Telegram API.  
+> Для Арины лучше отправлять именно ссылку Vercel.
+
+## Локальный запуск
 
 ```env
-TELEGRAM_BOT_TOKEN=токен_от_BotFather
-TELEGRAM_CHAT_ID=твой_chat_id
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
 PORT=3001
 ```
 
@@ -53,38 +61,4 @@ npm run dev
 - Сайт: http://localhost:5173
 - API: http://localhost:3001
 
-Каждый клик (старт, занятие, игра, дата, ДА/НЕТ) уходит в Telegram.
-
----
-
-## 3. Деплой с GitHub → Vercel
-
-1. Залей проект на GitHub **без** `.env`
-2. Зайди на [vercel.com](https://vercel.com) → Import репозиторий
-3. В Project Settings → Environment Variables добавь:
-   - `TELEGRAM_BOT_TOKEN`
-   - `TELEGRAM_CHAT_ID`
-4. Deploy
-
-После деплоя открой ссылку Vercel и пройди сценарий — сообщения придут в Telegram.
-
----
-
-## API
-
-`POST /api/choice`
-
-Тело (пример):
-
-```json
-{
-  "name": "Арина",
-  "activity": "Поиграем",
-  "game": "Minecraft",
-  "date": "На выходных",
-  "finalChoice": "yes",
-  "event": "yes"
-}
-```
-
-Токен никогда не попадает в браузер.
+`.env` никогда не коммить — он уже в `.gitignore`.
