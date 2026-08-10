@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" role="img" aria-label="Minecraft">
+  <rect width="400" height="240" fill="#3a7d2a"/>
+  <rect y="140" width="400" height="100" fill="#6b4a2b"/>
+  <rect y="140" width="400" height="14" fill="#5a9e3a"/>
+  <g fill="#5d4030">
+    <rect x="40" y="160" width="40" height="40"/>
+    <rect x="120" y="180" width="40" height="40"/>
+    <rect x="220" y="155" width="40" height="40"/>
+    <rect x="300" y="185" width="40" height="40"/>
+  </g>
+  <g transform="translate(148 48)">
+    <rect width="104" height="104" fill="#8B5A2B" stroke="#3e2723" stroke-width="4"/>
+    <rect x="8" y="8" width="40" height="40" fill="#6D4C41"/>
+    <rect x="56" y="8" width="40" height="40" fill="#A1887F"/>
+    <rect x="8" y="56" width="40" height="40" fill="#A1887F"/>
+    <rect x="56" y="56" width="40" height="40" fill="#5D4037"/>
+  </g>
+  <text x="200" y="220" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="24" font-weight="700">MINECRAFT</text>
+</svg>

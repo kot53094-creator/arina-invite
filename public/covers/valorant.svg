@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" role="img" aria-label="Valorant">
+  <defs>
+    <linearGradient id="val" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1923"/>
+      <stop offset="100%" stop-color="#ff4655"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="240" fill="url(#val)"/>
+  <polygon points="200,48 248,170 200,148 152,170" fill="#fff"/>
+  <text x="200" y="215" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="26" font-weight="700">VALORANT</text>
+</svg>

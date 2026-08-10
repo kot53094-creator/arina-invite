@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" role="img" aria-label="Roblox">
+  <defs>
+    <linearGradient id="rb" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e2231a"/>
+      <stop offset="100%" stop-color="#8b0d08"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="240" fill="url(#rb)"/>
+  <g transform="translate(200 120) rotate(-15)">
+    <rect x="-54" y="-54" width="108" height="108" rx="18" fill="#fff"/>
+    <rect x="-30" y="-30" width="60" height="60" rx="10" fill="#e2231a"/>
+  </g>
+  <text x="200" y="210" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="28" font-weight="700">ROBLOX</text>
+</svg>

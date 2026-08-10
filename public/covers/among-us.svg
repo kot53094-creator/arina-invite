@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" role="img" aria-label="Among Us">
+  <rect width="400" height="240" fill="#1b1f3a"/>
+  <ellipse cx="200" cy="120" rx="70" ry="85" fill="#e74c3c"/>
+  <ellipse cx="230" cy="100" rx="38" ry="28" fill="#9ad7ff"/>
+  <rect x="155" y="150" width="22" height="40" rx="6" fill="#c0392b"/>
+  <rect x="223" y="150" width="22" height="40" rx="6" fill="#c0392b"/>
+  <text x="200" y="220" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="24" font-weight="700">AMONG US</text>
+</svg>

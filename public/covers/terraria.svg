@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" role="img" aria-label="Terraria">
+  <rect width="400" height="240" fill="#1a3a2a"/>
+  <rect y="0" width="400" height="90" fill="#87CEEB"/>
+  <rect y="90" width="400" height="30" fill="#228B22"/>
+  <rect x="60" y="70" width="28" height="50" fill="#8B4513"/>
+  <circle cx="74" cy="58" r="28" fill="#2e8b57"/>
+  <rect x="180" y="120" width="40" height="40" fill="#8B4513"/>
+  <rect x="240" y="140" width="40" height="40" fill="#cd853f"/>
+  <rect x="300" y="110" width="40" height="40" fill="#556b2f"/>
+  <text x="200" y="215" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="26" font-weight="700">TERRARIA</text>
+</svg>
