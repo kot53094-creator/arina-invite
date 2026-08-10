@@ -1,0 +1,43 @@
+name: Setup Telegram
+
+on:
+  workflow_dispatch:
+
+jobs:
+  telegram:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve chat id and send test
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
+            echo "Missing TELEGRAM_BOT_TOKEN secret"
+            exit 1
+          fi
+
+          echo "Bot:"
+          curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe"
+          echo
+
+          CHAT_ID="${TELEGRAM_CHAT_ID:-}"
+          if [ -z "$CHAT_ID" ]; then
+            UPDATES=$(curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates")
+            echo "Updates: $UPDATES"
+            CHAT_ID=$(node -e 'const u=JSON.parse(process.argv[1]); const id=(u.result||[]).map(x=>x.message?.chat?.id||x.my_chat_member?.chat?.id||x.callback_query?.message?.chat?.id).find(Boolean); if(!id) process.exit(2); process.stdout.write(String(id))' "$UPDATES") || true
+          fi
+
+          if [ -z "${CHAT_ID:-}" ]; then
+            echo "::error::Напиши боту в Telegram любое сообщение (например: привет), затем снова Run workflow."
+            exit 1
+          fi
+
+          echo "CHAT_ID=$CHAT_ID"
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H 'Content-Type: application/json' \
+            -d "{\"chat_id\":\"${CHAT_ID}\",\"text\":\"Бот подключён к сайту-приглашению ✅\"}"
+          echo
+          echo "Сохрани TELEGRAM_CHAT_ID=$CHAT_ID в GitHub Secrets и в Vercel Environment Variables"

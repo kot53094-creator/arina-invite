@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Volume2, VolumeX } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-/** Cheerful upbeat chiptune-ish loop via Web Audio */
+/** Cheerful upbeat loop — starts automatically (unlocks on first tap if browser blocks autoplay) */
 export function MusicToggle() {
-  const [on, setOn] = useState(false)
+  const [on, setOn] = useState(true)
+  const [blocked, setBlocked] = useState(false)
   const ctxRef = useRef<AudioContext | null>(null)
   const nodesRef = useRef<AudioNode[]>([])
   const timersRef = useRef<number[]>([])
+  const wantedOn = useRef(true)
 
-  const stop = () => {
+  const stop = useCallback(() => {
     timersRef.current.forEach((id) => window.clearInterval(id))
     timersRef.current = []
     nodesRef.current.forEach((n) => {
@@ -24,18 +26,25 @@ export function MusicToggle() {
     nodesRef.current = []
     void ctxRef.current?.close()
     ctxRef.current = null
-  }
+  }, [])
 
-  const start = async () => {
+  const start = useCallback(async () => {
     stop()
     const ctx = new AudioContext()
     ctxRef.current = ctx
+
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume()
+      } catch {
+        /* browser may still block */
+      }
+    }
 
     const master = ctx.createGain()
     master.gain.value = 0.08
     master.connect(ctx.destination)
 
-    // Punchy kick-ish click via short sine
     const playKick = (time: number) => {
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
@@ -50,13 +59,12 @@ export function MusicToggle() {
       osc.stop(time + 0.15)
     }
 
-    // Bright melody in C major — bouncy
     const melody = [523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 392.0]
     const bass = [130.81, 146.83, 164.81, 196.0]
 
     let step = 0
     const bpm = 132
-    const stepDur = 60 / bpm / 2 // eighth notes
+    const stepDur = 60 / bpm / 2
 
     const tick = () => {
       if (!ctxRef.current) return
@@ -64,7 +72,6 @@ export function MusicToggle() {
 
       if (step % 2 === 0) playKick(now)
 
-      // melody note
       {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
@@ -83,7 +90,6 @@ export function MusicToggle() {
         osc.stop(now + stepDur)
       }
 
-      // bass on every 4th
       if (step % 4 === 0) {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
@@ -97,7 +103,6 @@ export function MusicToggle() {
         osc.stop(now + stepDur * 3.5)
       }
 
-      // sparkle hi
       if (step % 3 === 0) {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
@@ -118,18 +123,49 @@ export function MusicToggle() {
     const id = window.setInterval(tick, stepDur * 1000)
     timersRef.current.push(id)
     nodesRef.current.push(master)
-  }
 
-  useEffect(() => () => stop(), [])
+    const playing = ctx.state === 'running'
+    setOn(playing)
+    setBlocked(!playing)
+    return playing
+  }, [stop])
+
+  useEffect(() => {
+    wantedOn.current = true
+    void start()
+
+    const unlock = () => {
+      if (!wantedOn.current) return
+      const ctx = ctxRef.current
+      if (ctx && ctx.state === 'suspended') {
+        void ctx.resume().then(() => {
+          setOn(true)
+          setBlocked(false)
+        })
+      } else if (!ctxRef.current) {
+        void start()
+      }
+    }
+
+    const events: Array<keyof WindowEventMap> = ['pointerdown', 'touchstart', 'keydown', 'click']
+    events.forEach((ev) => window.addEventListener(ev, unlock, { passive: true }))
+
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, unlock))
+      stop()
+    }
+  }, [start, stop])
 
   const toggle = async () => {
-    if (on) {
+    if (on || (ctxRef.current && ctxRef.current.state === 'running')) {
+      wantedOn.current = false
       stop()
       setOn(false)
+      setBlocked(false)
       return
     }
+    wantedOn.current = true
     await start()
-    setOn(true)
   }
 
   return (
@@ -139,6 +175,7 @@ export function MusicToggle() {
       whileTap={{ scale: 0.92 }}
       className="fixed bottom-5 left-5 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-white/15 text-white shadow-[0_8px_30px_rgba(28,24,72,0.35)] backdrop-blur-md"
       aria-label={on ? 'Выключить музыку' : 'Включить музыку'}
+      title={blocked ? 'Нажми куда угодно — музыка включится' : undefined}
     >
       {on ? <Volume2 size={18} /> : <VolumeX size={18} />}
     </motion.button>
