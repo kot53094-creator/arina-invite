@@ -1,5 +1,5 @@
 /**
- * Self-contained Netlify function — no TS path imports that break bundling.
+ * Netlify Function — CommonJS (isolated from root "type": "module")
  */
 
 const ALLOWED = {
@@ -59,7 +59,9 @@ function validate(body) {
   if (!body || typeof body !== 'object') return { ok: false }
   const data = { name: 'Арина' }
   if (body.name != null) {
-    if (typeof body.name !== 'string' || !body.name.trim() || body.name.length > 40) return { ok: false }
+    if (typeof body.name !== 'string' || !body.name.trim() || body.name.length > 40) {
+      return { ok: false }
+    }
     data.name = body.name.trim()
   }
 
@@ -151,8 +153,9 @@ function buildMessage(data, event) {
   }
 
   if (event === 'start') return `Арина открыла приглашение\n\n${time}`
-  if (event === 'activity' && data.activity)
+  if (event === 'activity' && data.activity) {
     return `Новый выбор\n\n${name}\nВыбрала: ${data.activity}\n\n${time}`
+  }
   if (event === 'game' && data.game) return `Выбрала игру\n\n${data.game}\n\n${time}`
   if (event === 'mood' && data.mood) return `Настроение прогулки\n\n${data.mood}\n\n${time}`
   if (event === 'movie' && data.movie) return `Выбор кино\n\n${data.movie}\n\n${time}`
@@ -166,25 +169,34 @@ async function sendTelegram(text) {
   const token = process.env.TELEGRAM_BOT_TOKEN
   const chatId = process.env.TELEGRAM_CHAT_ID
   if (!token || !chatId) {
-    console.warn('[telegram] missing env', { hasToken: !!token, hasChatId: !!chatId })
+    console.warn('[telegram] missing env', { hasToken: Boolean(token), hasChatId: Boolean(chatId) })
     return { ok: false, reason: 'missing_env' }
   }
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
-  })
-  if (!res.ok) {
-    const body = await res.text().catch(() => '')
-    console.error('[telegram] API error', res.status, body.slice(0, 300))
-    return { ok: false, reason: 'telegram_error' }
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: String(chatId).trim(),
+        text,
+        disable_web_page_preview: true,
+      }),
+    })
+    const raw = await res.text()
+    if (!res.ok) {
+      console.error('[telegram] API error', res.status, raw.slice(0, 300))
+      return { ok: false, reason: 'telegram_error', status: res.status }
+    }
+    return { ok: true }
+  } catch (err) {
+    console.error('[telegram] network error', err)
+    return { ok: false, reason: 'network_error' }
   }
-  return { ok: true }
 }
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 }
 
@@ -192,22 +204,24 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: cors, body: '' }
   }
+
   if (event.httpMethod === 'GET') {
     const token = process.env.TELEGRAM_BOT_TOKEN || ''
-    const chatId = process.env.TELEGRAM_CHAT_ID || ''
+    const chatId = String(process.env.TELEGRAM_CHAT_ID || '').trim()
     return {
       statusCode: 200,
       headers: { ...cors, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ok: true,
+        version: 'choice-v2',
         hasToken: Boolean(token),
         hasChatId: Boolean(chatId),
-        // safe hints only — never full secrets
         tokenLooksOk: /^\d+:[A-Za-z0-9_-]+$/.test(token),
         chatIdLooksOk: /^-?\d+$/.test(chatId) && chatId !== '8913074913',
       }),
     }
   }
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -241,6 +255,11 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers: { ...cors, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ok: true, delivered: sent.ok, reason: sent.reason || null }),
+    body: JSON.stringify({
+      ok: true,
+      delivered: sent.ok,
+      reason: sent.reason || null,
+      version: 'choice-v2',
+    }),
   }
 }

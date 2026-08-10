@@ -3,7 +3,12 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[functions]
+  node_bundler = "esbuild"
+  included_files = []
+
 [[redirects]]
   from = "/api/choice"
   to = "/.netlify/functions/choice"
   status = 200
+  force = true
